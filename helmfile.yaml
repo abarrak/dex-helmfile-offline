@@ -1,0 +1,70 @@
+repositories:
+- name: dex
+  url: https://charts.dexidp.io
+
+helmDefaults:
+  verify: true
+  wait: true
+  waitForJobs: true
+  timeout: 600
+
+releases:
+  - name: dex
+    namespace: dex
+    createNamespace: true
+    chart: dex/dex
+    version: 0.11.1
+    values:
+      - config:
+          issuer: {{ requiredEnv "OIDC_ISSUER" }}
+          storage:
+            type: kubernetes
+            config:
+              inCluster: true
+          oauth2:
+            skipApprovalScreen: true
+          staticClients:
+            - id: kubernetes
+              name: Kubernetes
+              secret: hkwU-OV9oqxVt_OQspnVuEB5Nnc4Olyx2pKSp6UP3as=
+              redirectURIs:
+              - https://dashboard./oauth2/callback
+              - http://localhost:8000
+              - http://localhost:18000
+              - urn:ietf:wg:oauth:2.0:oob
+          connectors:
+            - type: ldap
+              id: ldap
+              name: LDAP
+              config:
+                host: {{ requiredEnv "LDAP_HOST" }}:{{ requiredEnv "LDAP_PORT" }}
+                bindDN: {{ requiredEnv "LDAP_BIND_DN" }}
+                bindPW: {{ requiredEnv "LDAP_BIND_PASSWORD" }}
+                usernamePrompt: LDAP Username
+                userSearch:
+                  baseDN: {{ requiredEnv "LDAP_BASE_DN" }}
+                  filter: "(objectClass=posixAccount)"
+                  username: uid
+                  idAttr: uid
+                  emailAttr: mail
+                  nameAttr: uid
+                groupSearch:
+                  baseDN: {{ requiredEnv "LDAP_GROUP_BASE_DN" }}
+                  filter: "(|(objectClass=posixGroup)(objectClass=groupOfNames))"
+                  nameAttr: cn
+                  userMatchers:
+                  - userAttr: DN
+                    groupAttr: member
+
+      - ingress:
+          enabled: true
+          className: {{ requiredEnv "DEFAULT_INGRESS_CLASS" }}
+          hosts:
+          - host: {{ requiredEnv "DEX_INGRESS_HOSTS_DEX" }}
+            paths:
+              - path: /dex
+                pathType: Prefix
+          tls:
+          - secretName: default-tls
+            hosts:
+            - {{ requiredEnv "DEX_INGRESS_HOSTS_DEX" }}
