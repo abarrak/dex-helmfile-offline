@@ -26,12 +26,9 @@ releases:
           staticClients:
             - id: kubernetes
               name: Kubernetes
-              secret: hkwU-OV9oqxVt_OQspnVuEB5Nnc4Olyx2pKSp6UP3as=
+              secret: {{ requiredEnv "K8S_STATIC_CLIENT_SECRET" }}
               redirectURIs:
               - https://dashboard./oauth2/callback
-              - http://localhost:8000
-              - http://localhost:18000
-              - urn:ietf:wg:oauth:2.0:oob
           connectors:
             - type: ldap
               id: ldap
@@ -50,7 +47,7 @@ releases:
                   nameAttr: uid
                 groupSearch:
                   baseDN: {{ requiredEnv "LDAP_GROUP_BASE_DN" }}
-                  filter: "(|(objectClass=posixGroup)(objectClass=groupOfNames))"
+                  filter: ""
                   nameAttr: cn
                   userMatchers:
                   - userAttr: DN
@@ -62,7 +59,7 @@ releases:
           hosts:
           - host: {{ requiredEnv "DEX_INGRESS_HOSTS_DEX" }}
             paths:
-              - path: /dex
+              - path: /auth
                 pathType: Prefix
           tls:
           - secretName: default-tls
