@@ -2,6 +2,8 @@
 
 A helm release repo for deploying dex server in offline environment (no internet).
 
+[Read the article about the example here](https://www.abarrak.com/2022/10/08/using-helmfile-for-offline-deployments).
+
 # Deployment
 
 ```bash
